@@ -1,4 +1,4 @@
-Package: PDtools
+Package: bulkPDtools
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
@@ -28,7 +28,6 @@ Imports:
     patchwork,
     aplot,
     DOSE,
-    ggpp,
     ggsci,
     grDevices,
     purrr,

@@ -1,6 +1,5 @@
-#' @title dotplotGsea
 #' @name dotplotGsea
-#' @author Jun Zhang
+#' @title dotplotGsea
 #' @param data GSEA enrich object from clusterProfiler, defalut is NULL.
 #' @param pval pvalue cutoff to select significant terms, defalut is NULL.
 #' @param pajust adjusted pvalue cutoff to select significant terms, defalut is 0.05.

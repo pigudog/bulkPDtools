@@ -1,6 +1,5 @@
 #' @title gseaNb
 #' @name gseaNb
-#' @author Jun Zhang
 #' @param object GSEA enrich results.
 #' @param filePath filePath the path of the GSEA software enrichment
 #'  outputs or "readGseaFile" object, defalut is NULL.
@@ -1053,10 +1052,4 @@ gseaNb <- function(object = NULL,
 }
 
 
-#' This is a test data for this package
-#' test data describtion
-#'
-#' @name intergrated
-#' @docType data
-#' @author JunZhang
-"intergrated"
+

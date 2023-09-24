@@ -135,6 +135,3 @@ gseaNb(object = gseaRes,
       geneSetID = 'GOBP_NUCLEOSIDE_DIPHOSPHATE_METABOLIC_PROCESS',
       subPlot = 2)
 }
-\author{
-Jun Zhang
-}

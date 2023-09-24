@@ -39,16 +39,6 @@ a pca plot according to \code{exp} and grouped by \code{group}.
 \description{
 do PCA analysis and print a PCA plot
 }
-\examples{
-draw_pca(t(iris[,1:4]),iris$Species)
-draw_pca(t(iris[,1:4]),iris$Species,style = "ggplot2")
-draw_pca(t(iris[,1:4]),iris$Species,style = "3D")
-#change color
-draw_pca(t(iris[,1:4]),iris$Species,color = c("#E78AC3", "#A6D854", "#FFD92F"))
-}
 \seealso{
 \code{\link{draw_heatmap}};\code{\link{draw_volcano}};\code{\link{draw_venn}}
-}
-\author{
-Xiaojie Sun
 }

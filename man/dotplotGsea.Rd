@@ -34,6 +34,3 @@ a ggplot object.
 \description{
 dotplotGsea
 }
-\author{
-Jun Zhang
-}

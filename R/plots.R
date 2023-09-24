@@ -19,16 +19,8 @@
 ##' @importFrom ggplot2 aes
 ##' @importFrom ggplot2 stat_ellipse
 ##' @return a pca plot according to \code{exp} and grouped by \code{group}.
-##' @author Xiaojie Sun
 ##' @export
 ##' @examples
-##' draw_pca(t(iris[,1:4]),iris$Species)
-##' draw_pca(t(iris[,1:4]),iris$Species,style = "ggplot2")
-##' draw_pca(t(iris[,1:4]),iris$Species,style = "3D")
-##' #change color
-##' draw_pca(t(iris[,1:4]),iris$Species,color = c("#E78AC3", "#A6D854", "#FFD92F"))
-
-
 ##' @seealso
 ##' \code{\link{draw_heatmap}};\code{\link{draw_volcano}};\code{\link{draw_venn}}
 
@@ -80,6 +72,8 @@ draw_pca <-  function(exp,group_list,
                    geom = "polygon",
                    alpha = 0.3,
                    linetype = 2)
+    # alpha = 0.3: This sets the transparency level (alpha) of the ellipses. A value of 0.3 means the ellipses will be somewhat transparent.
+    # linetype = 2: This sets the line type of the ellipse's border. A value of 2 specifies a dashed line type.
     return(p)
   }else if(style == "3D"){
     colors = color[as.numeric(group_list)]
