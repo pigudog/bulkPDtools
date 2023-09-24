@@ -1,3 +1,0 @@
-"id.exposure","id.outcome","outcome","exposure","method","Q","Q_df","Q_pval"
-"finn-b-E4_HYPERLIPNAS","finn-b-E4_POCS","Polycystic ovarian syndrome || id:finn-b-E4_POCS","Hyperlipidaemia, other/unspecified || id:finn-b-E4_HYPERLIPNAS","MR Egger",0.939703589048179,3,0.815837365803506
-"finn-b-E4_HYPERLIPNAS","finn-b-E4_POCS","Polycystic ovarian syndrome || id:finn-b-E4_POCS","Hyperlipidaemia, other/unspecified || id:finn-b-E4_HYPERLIPNAS","Inverse variance weighted",1.57788943705743,4,0.812760488242345
