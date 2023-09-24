@@ -1,0 +1,44 @@
+```{r}
+load('data/DESeq2_raw.Rdata')
+DEG_1_0.05 <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
+dim(DEG_1_0.05)
+```
+
+```{r}
+library(readxl)
+mito_gene <- read_excel("data/mito_gene.xlsx")
+dim(mito_gene)
+```
+```{r}
+mito_gene <- mito_gene$`Mitochondrial Genes (n=2030)`
+length(mito_gene)
+```
+```{r}
+intersect_gene <- intersect(rownames(DEG_1_0.05),mito_gene)
+length(intersect_gene)
+anyNA(intersect_gene)
+```
+```{r}
+write.table(intersect_gene,"data/mito_hub.txt",sep="\t", quote=F, col.names=F, row.names=F)
+```
+
+```{r}
+library(PDtools)
+x= list(DEG=rownames(DEG_1_0.05), #列表Deseq2
+         MITO=mito_gene
+        )
+PDtools::draw_venn(x,"venn plot",color = c("#2874C5","#f87669"))
+```
+```{r}
+color=c("#FF0000FF", "#0000CCFF")
+color=c("#2874C5","#f87669")
+library(VennDiagram)
+geneList <- list()
+geneList[["DEG"]]=rownames(DEG_1_0.05)
+geneList[["MITO"]]=mito_gene
+venn.plot=venn.diagram(geneList, filename=NULL, fill=color, scaled=FALSE, cat.pos=c(-1,1), cat.col=color, cat.cex = 1.2)
+pdf(file="Figure3/venn_another.pdf", width=5, height=5)
+grid.draw(venn.plot)
+dev.off()
+```
+

@@ -1,0 +1,74 @@
+```{r}
+library(PDtools)
+library(ggplot2)
+library(readr)
+```
+
+# Downgene
+```{r}
+downGene1 <- read_csv("PCOS_3_split/deg1/downGene_1_0.05.csv")
+down1 <- downGene1$...1
+downGene2 <- read_csv("PCOS_3_split/deg2/downGene_1_0.05.csv")
+down2 <- downGene2$...1
+downGene3 <- read_csv("PCOS_3_split/deg3/downGene_1_0.05.csv")
+down3 <- downGene3$...1
+```
+```{r}
+length(down1)
+length(down2)
+length(down3)
+class(down1)
+```
+
+```{r}
+x= list(GSE138518=down1, #列表Deseq2
+         GSE155489=down2,#列表edgeR
+         GSE193123=down3#limma
+        )
+PDtools::draw_venn(x,"venn plot",color = c("#2874C5","#f87669","#e6b707"))
+```
+```{r}
+color=c("#FF0000FF", "#0000CCFF")
+color=c("#2874C5","#f87669","#e6b707")
+library(VennDiagram)
+geneList <- list()
+geneList[["GSE138518"]]=down1
+geneList[["GSE155489"]]=down2
+geneList[["GSE193123"]]=down3
+venn.plot=venn.diagram(geneList, filename=NULL, fill=color, scaled=FALSE, cat.col=color, cat.cex = 1.2)
+pdf(file="Figure1/venn_down.pdf", width=5, height=5)
+grid.draw(venn.plot)
+dev.off()
+```
+
+# upgene
+```{r}
+upGene1 <- read_csv("PCOS_3_split/deg1/upGene_1_0.05.csv")
+up1 <- upGene1$...1
+upGene2 <- read_csv("PCOS_3_split/deg2/upGene_1_0.05.csv")
+up2 <- upGene2$...1
+upGene3 <- read_csv("PCOS_3_split/deg3/upGene_1_0.05.csv")
+up3 <- upGene3$...1
+```
+```{r}
+x= list(GSE138518=up1, #列表Deseq2
+         GSE155489=up2,#列表edgeR
+         GSE193123=up3#limma
+        )
+PDtools::draw_venn(x,"venn plot",color = c("#2874C5","#f87669","#e6b707"))
+```
+
+```{r}
+color=c("#2874C5","#f87669","#e6b707")
+library(VennDiagram)
+geneList <- list()
+geneList[["GSE138518"]]=up1
+geneList[["GSE155489"]]=up2
+geneList[["GSE193123"]]=up3
+venn.plot=venn.diagram(geneList, filename=NULL, fill=color, scaled=FALSE, cat.col=color, cat.cex = 1.2)
+pdf(file="Figure1/venn_up.pdf", width=5, height=5)
+grid.draw(venn.plot)
+dev.off()
+```
+
+

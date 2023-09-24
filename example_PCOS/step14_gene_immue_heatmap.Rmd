@@ -1,0 +1,191 @@
+```{r}
+inputFile="data/CIBERSORT-Results.csv" 
+#??ȡ????ϸ???????ļ?
+rt=read.table(inputFile, header=T, sep="\t", check.names=F, row.names=1)
+immune <- rt
+```
+
+```{r}
+## train
+group_list1=c(rep('CT',3),rep('PC',3))
+group_list2=c(rep('CT',4),rep('PC',4))
+group_list3=c(rep('CT',3),rep('PC',3))
+
+group_list_train=c(group_list1,group_list2,group_list3)
+anno=data.frame(row.names = rownames(rt),group=group_list_train)
+```
+
+```{r}
+lowName=row.names(anno)[anno[,1]=='CT']
+highName=row.names(anno)[anno[,1]=='PC']
+
+#提取不同分型的免疫细胞含量
+lowImm=intersect(row.names(immune), lowName)
+highImm=intersect(row.names(immune), highName)
+rt=rbind(immune[lowImm,], immune[highImm,])
+lowNum=length(lowImm)
+highNum=length(highImm)
+```
+
+```{r}
+pFilter=0.05 
+library(vioplot)
+#绘制小提琴图
+outTab=data.frame()
+par(las=1,mar=c(10,6,3,3))
+x=c(1:ncol(rt))
+y=c(1:ncol(rt))
+plot(x, y,
+     xlim=c(0,63), ylim=c(min(rt),max(rt)+0.02),
+     main="",xlab="", ylab="Fraction",
+     pch=21,
+     col="white",
+     xaxt="n")
+#对每个免疫细胞循环，绘制vioplot，低表达用蓝色表示，高表达用红色表示
+bioCol=c("#0072b5","#bc3c29","#FF9900","#6E568C","#7CC767","#223D6C","#D20A13","#FFD121","#088247","#11AA4D")
+for(i in 1:ncol(rt)){
+  if(sd(rt[1:lowNum,i])==0){
+    rt[1,i]=0.00001
+  }
+  if(sd(rt[(lowNum+1):(lowNum+highNum),i])==0){
+    rt[(lowNum+1),i]=0.00001
+  }
+  lowData=rt[1:lowNum,i]
+  highData=rt[(lowNum+1):(lowNum+highNum),i]
+  vioplot(lowData,at=3*(i-1),lty=1,add = T,col=bioCol[1])
+  vioplot(highData,at=3*(i-1)+1,lty=1,add = T,col=bioCol[2])
+  wilcoxTest=wilcox.test(lowData,highData)
+  p=wilcoxTest$p.value
+  if(p<pFilter){
+    cellPvalue=cbind(Cell=colnames(rt)[i],pvalue=p)
+    outTab=rbind(outTab,cellPvalue)
+  }
+  mx=max(c(lowData,highData))
+  lines(c(x=3*(i-1)+0.2,x=3*(i-1)+0.8),c(mx,mx))
+  text(x=3*(i-1)+0.5, y=mx+0.02, labels=ifelse(p<0.001, paste0("p<0.001"), paste0("p=",sprintf("%.03f",p))), cex = 0.8)
+}
+legend("topright", 
+       c("Normal", "PCOS"),
+       lwd=5.5,bty="n",cex=1.5,
+       col=bioCol[1:2])
+text(seq(1,64,3),-0.05,xpd = NA,labels=colnames(rt),cex = 0.9,srt = 45,pos=2)
+```
+```{r}
+intersect_gene <- read.table("data/mito_hub.txt")
+gene=as.data.frame(intersect_gene)
+# gene=gene[3:31,]
+rt=read.table('data/merge.normalize3.txt', header=T, sep="\t", check.names=F, row.names=1)
+```
+
+
+```{r}
+rt=rt[rownames(rt) %in% gene$V1,]
+rt=as.data.frame(t(rt))
+```
+
+```{r}
+
+# 瞄一眼，有NA的列去除,这些列全是0!!!!!!!!!!!!!!!!!!!!!
+
+immune<- immune[,c(1:8,11:14,16:22)]
+colnames(immune)
+```
+
+
+
+```{r}
+library(psych)
+pp <- corr.test(rt,immune,method="spearman",adjust = "fdr")
+cor <- pp$r
+pvalue <- pp$p
+
+
+
+```
+
+```{r}
+library(psych)
+library(reshape2)
+
+myfun <- function(pval) {
+  stars = ""
+  if(pval <= 0.001)
+    stars = "***"
+  if(pval > 0.001 & pval <= 0.01)
+    stars = "**"
+  if(pval > 0.01 & pval <= 0.05)
+    stars = "*"
+  if(pval > 0.05 & pval <= 0.1)
+    stars = ""
+  stars
+}
+heatmap <- melt(cor)
+colnames(heatmap)=c('sample','gene','cor')  
+library(dplyr)
+heatmap=mutate(heatmap,pvalue=melt(pvalue)[,3]) %>%
+  mutate(signif = sapply(pvalue, function(x) myfun(x)))
+```
+```{r}
+library(ggplot2)
+ggplot(heatmap,aes(sample,gene,col=cor))+
+  geom_tile(color="grey70",fill="white",size=1)+
+  geom_point(aes(size = abs(cor)),shape=15) + 
+  geom_text(aes(label=signif),size=6,color="white",
+            hjust=0.5,vjust=0.7)+
+  labs(x = NULL,y = NULL,color=NULL) + 
+  scale_color_viridis_c()+
+  scale_x_discrete(expand=c(0,0)) +
+  scale_y_discrete(expand=c(0,0)) +
+  theme(text=element_text(),
+        axis.ticks.x = element_blank(),axis.text.x = element_text( angle =45),
+        axis.ticks.y=element_blank(),
+        panel.border = element_rect(fill=NA,color="grey70",
+                                    size=2, linetype="solid")) +
+  scale_size(range=c(1,10),guide=NULL)+
+  guides(color = guide_colorbar(direction = "vertical",
+                                reverse = F,barwidth = unit(.5, "cm"),
+                                barheight = unit(15, "cm")))
+```
+
+```{r}
+hub_gene <- read.table("data/intersect_gene.txt")
+rt=rt[,colnames(rt) %in% hub_gene$V1]
+rt=as.data.frame(rt)
+library(psych)
+pp <- corr.test(rt,immune,method="spearman",adjust = "fdr")
+cor <- pp$r
+pvalue <- pp$p
+heatmap <- melt(cor)
+colnames(heatmap)=c('sample','gene','cor')  
+library(dplyr)
+heatmap=mutate(heatmap,pvalue=melt(pvalue)[,3]) %>%
+  mutate(signif = sapply(pvalue, function(x) myfun(x)))
+library(ggplot2)
+ggplot(heatmap,aes(sample,gene,col=cor))+
+  geom_tile(color="grey70",fill="white",size=1)+
+  geom_point(aes(size = abs(cor)),shape=15) + 
+  geom_text(aes(label=signif),size=6,color="white",
+            hjust=0.5,vjust=0.7)+
+  labs(x = NULL,y = NULL,color=NULL) + 
+  scale_color_viridis_c()+
+  scale_x_discrete(expand=c(0,0)) +
+  scale_y_discrete(expand=c(0,0)) +
+  theme(text=element_text(),
+        axis.ticks.x = element_blank(),axis.text.x = element_text( angle =45),
+        axis.ticks.y=element_blank(),
+        panel.border = element_rect(fill=NA,color="grey70",
+                                    size=2, linetype="solid")) +
+  scale_size(range=c(1,10),guide=NULL)+
+  guides(color = guide_colorbar(direction = "vertical",
+                                reverse = F,barwidth = unit(.5, "cm"),
+                                barheight = unit(15, "cm")))
+```
+```{r}
+# library(ggstatsplot)
+# data=cbind(rt,immnue)
+# colnames(data)
+```
+```{r}
+# ggscatterstats(data,x = 'LPIN1',y='T_cells_CD4_naive_CIBERSORT')
+```
+

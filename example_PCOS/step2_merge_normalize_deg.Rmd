@@ -1,0 +1,76 @@
+```{r}
+#######去批次
+library(limma)
+# 没有先安装
+#BiocManager::install('sva',ask = F,update = F)
+library(sva)
+# name of merged file
+mergeFile="./data/merge_count_deg_preremove.txt" 
+# name of normalized file
+normalizeFile="./data/merge.normalize3.txt"      #
+# get the file 
+files=c('GSE138518.txt','GSE155489.txt',"GSE193123.txt")       #the "GSE168404.txt" used as a test set
+# acquisition of intersection gene
+length(files)
+```
+
+
+```{r}
+library(data.table)
+
+dir = "data/"
+geneList=list()
+for(i in 1:length(files)){
+  fileName=paste0(dir,files[i])
+  # fread() for reading data into a regular data frame
+  rt=fread(fileName,data.table = F)
+  # unlist() will convert the result of `strsplit` into a flattened vector
+  header=unlist(strsplit(fileName, "\\.|\\-"))
+  geneList[[header[1]]]=as.vector(rt[,1])
+}
+# The result will be a vector containing the common genes that are present in all the lists within geneList.
+intersectGenes=Reduce(intersect, geneList)
+# show the length
+length(intersectGenes)
+```
+
+```{r}
+library(limma)
+#数据合并
+allTab=data.frame()
+batchType=c()
+for(i in 1:length(files)){
+  fileName=files[i]
+  header=unlist(strsplit(fileName, "\\.|\\-"))
+  #读取输入文件，并对输入文件进行整理
+  rt=fread(paste0("data/",fileName),data.table = F)
+  rt=as.matrix(rt)
+  rownames(rt)=rt[,1]
+  exp=rt[,2:ncol(rt)]
+  dimnames=list(rownames(exp),colnames(exp))
+  data=matrix(as.numeric(as.matrix(exp)), nrow=nrow(exp), dimnames=dimnames)
+  rt=avereps(data)
+  colnames(rt)=paste0(header[1], "_", colnames(rt))
+  # 对数值大的数据取log2
+  qx=as.numeric(quantile(rt, c(0, 0.25, 0.5, 0.75, 0.99, 1.0), na.rm=T))
+  LogC=( (qx[5]>100) || ( (qx[6]-qx[1])>50 && qx[2]>0) )
+  if(LogC){
+  rt[rt<0]=0
+  rt=log2(rt+1)}
+  rt=normalizeBetweenArrays(rt)
+  # 数据合并
+  if(i==1){
+    allTab=rt[intersectGenes,]
+  }else{
+    allTab=cbind(allTab, rt[intersectGenes,])
+  }
+  batchType=c(batchType, rep(header[1],ncol(rt)))
+}
+#对数据进行批次矫正，输出矫正后的结果
+library(sva)
+normalizeTab=ComBat(allTab, batchType, par.prior=TRUE)
+
+normalizeTab=rbind(geneNames=colnames(normalizeTab), normalizeTab)
+write.table(normalizeTab, file=normalizeFile, sep="\t", quote=F, col.names=F)
+```
+

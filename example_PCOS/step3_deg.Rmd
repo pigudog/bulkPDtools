@@ -1,0 +1,111 @@
+```{r}
+rt=read.table('data/merge.normalize3.txt', header=T, sep="\t", check.names=F, row.names=1)
+boxplot(rt)
+```
+```{r}
+load('data/GSE138518.Rdata')
+pdata1=pdata
+group_list1=c(rep('CT',3),rep('PC',3))
+
+load('data/GSE155489.Rdata')
+pdata2=pdata
+group_list2=c(rep('CT',4),rep('PC',4))
+
+load('data/GSE193123.Rdata')
+pdata3=pdata
+group_list3=c(rep('CT',3),rep('PC',3))
+
+group_list=c(group_list1,group_list2,group_list3)
+group_list=factor(group_list,levels=c('CT','PC'))
+
+a = grep('GSE138518',colnames(rt))
+b = grep('GSE155489',colnames(rt))
+c = grep('GSE193123',colnames(rt))
+
+exprSet=rt[,c(a,b,c)]
+
+load("data/DESeq2_raw.Rdata")
+allDiff=DEG
+
+### 作热图
+rt1=exprSet[,group_list=='CT']
+rt2=exprSet[,group_list=='PC']
+
+rt=cbind(rt1,rt2)
+
+anno=data.frame(row.names = colnames(rt),group=c(rep('CT',10),rep('PC',10)))
+
+save(rt,anno,file ='key_train_exprSet.Rdata')
+```
+
+```{r}
+library(ggplot2)
+library(PDtools)
+```
+# volcano
+```{r}
+#DEG
+library(ggpubr)
+#添加change列标记基因上调下调
+logFC_t = 1
+pvalue_t = 0.05
+DEG <- allDiff
+DEG$v= -log10(DEG$pvalue) #df新增加一列'v',值为-log10(P.Value)
+ggscatter(DEG, x = "log2FoldChange", y = "v",size=0.5)
+```
+
+```{r}
+DEG$g=ifelse(DEG$pvalue>0.05,'stable', 
+            ifelse( DEG$log2FoldChange >1,'up', 
+                    ifelse( DEG$log2FoldChange < -1,'down','stable') )
+)
+table(DEG$g)
+```
+
+```{r}
+library(ggrepel)  # 加载ggrepel包
+DEG <- allDiff
+DEG <- cbind(symbol = rownames(DEG), DEG)
+# DEG <- rename(DEG, regulate = change) #修改列名 将"change"列名修改为"regulate"
+DEG <- add_regulate(DEG)
+
+color <- c("#00AFBB","#999999","#fc4e07")
+color <- c("#2fa1dd", "#999999", "#f87669")
+
+p <- ggvolcano(data = DEG,x="log2FoldChange",y="pvalue",output = F,label = "symbol",
+               fills = color,
+               colors = color,
+               x_lab = "log2FC",
+               y_lab = "-log10P.Value",
+               legend_position = "UR")
+p
+```
+# heatmap
+
+```{r}
+###热图的绘制
+library(pheatmap)
+dat <- rt
+###差异基因名称提取
+DEG_genes <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
+DEG_sorted <- DEG_genes[order(DEG_genes$log2FoldChange,decreasing = T), ]
+tem1 <- head(rownames(DEG_sorted),100)
+tem2 <- tail(rownames(DEG_sorted),100)
+# 我们需要降序
+DEG_gene_expr <- dat[c(tem1,tem2),]
+DEG_gene_expr <- t(scale(t(DEG_gene_expr)))
+DEG_gene_expr <- na.omit(DEG_gene_expr)
+ac=data.frame(g=anno$group)
+rownames(ac)=colnames(DEG_gene_expr) 
+# png(paste0(job,'3mVS9M_DEG_pheatmap.png'),width =1024,height =1024)
+pheatmap(DEG_gene_expr,color=colorRampPalette(c("#2fa1dd","white","#FC4E07"))(100),
+         scale="row",
+         border_color=NA,
+         fontsize=10,
+         show_rownames=F,
+         show_colnames = T,
+         annotation_col=ac,
+         cluster_cols = F,
+         filename = './Figure1/heatmap.pdf')
+```
+

@@ -1,0 +1,238 @@
+# GSE155489
+
+
+```{r}
+load("GSE155489.Rdata")
+group_list1=c(rep('CT',4),rep('PC',4))
+group_list = factor(group_list1,levels = c("CT","PC"))
+```
+```{r}
+library(DESeq2)
+# condition是我们的对比条件，type是我们的batch
+coldata <- data.frame(condition = group_list1)
+rownames(coldata) <- colnames(exprSet)
+dds <- DESeqDataSetFromMatrix(countData = exprSet,
+                              colData = coldata,
+                              design = ~ condition)
+dds <- DESeq(dds)
+```
+
+```{r}
+res <- results(dds, name="condition_PC_vs_CT")
+summary(res)
+```
+
+
+```{r}
+DEG2 <- as.data.frame(res)
+DEG2 <- DEG2[order(DEG2$pvalue),] 
+DEG2 = na.omit(DEG2)
+head(DEG2)
+```
+
+
+```{r}
+save(DEG2,file = "deg/DESeq2_deg_data2.Rdata")
+write.table(DEG2,row.names=TRUE,col.names=TRUE,sep=",","deg/DESeq2_degPCvsCT_data2.csv")
+```
+
+```{r}
+# pca plot
+library(ggplot2)
+library(tinyarray)
+# the tinyarray is pckage
+dat <- exprSet
+Group <- factor(coldata$condition,levels=c('CT','PC'))
+# the dat has been log2
+pca.plot = draw_pca(dat,Group)
+```
+```{r}
+pca.plot
+```
+
+```{r}
+dat <- exprSet
+cg=names(tail(sort(apply(dat,1,sd)),1000))#apply按行（'1'是按行取，'2'是按列取）取每一行的方差，从小到大排序，取最大的1000个
+library(pheatmap)
+pheatmap(dat[cg,],show_colnames =F,show_rownames = F) #对那些提取出来的1000个基因所在的每一行取出，组合起来为一个新的表达矩阵
+n=t(scale(t(dat[cg,]))) # 'scale'可以对log-ratio数值进行归一化
+n[n>2]=2 
+n[n< -2]= -2
+n[1:4,1:4]
+pheatmap(n,show_colnames =F,show_rownames = F)
+ac=data.frame(g=group_list)
+rownames(ac)=colnames(n) #把ac的行名给到n的列名，即对每一个探针标记上分组信息（是'noTNBC'还是'TNBC'）
+## 可以看到TNBC具有一定的异质性，拿它来区分乳腺癌亚型指导临床治疗还是略显粗糙。
+pheatmap(n,show_colnames =F,show_rownames = F,
+         annotation_col=ac,filename = './check2/heatmap2_top1000_sd.png')
+```
+```{r}
+#DEG
+DEG <- DEG2
+library(ggpubr)
+#添加change列标记基因上调下调
+logFC_t = 1
+pvalue_t = 0.05
+DEG$v= -log10(DEG$pvalue) #df新增加一列'v',值为-log10(P.Value)
+# ggscatter(DEG, x = "logFC", y = "v",size=0.5)
+```
+
+
+```{r}
+logFC_t = 1
+pvalue_t = 0.05
+# k1 = down
+k1 = (DEG$pvalue < pvalue_t)&(DEG$log2FoldChange < -logFC_t);table(k1)
+# k2=up
+k2 = (DEG$pvalue < pvalue_t)&(DEG$log2FoldChange > logFC_t);table(k2)
+DEG$change = ifelse(k1,"DOWN",ifelse(k2,"UP","NOT"))
+###区分上下调基因
+DE_1_0.05 <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
+upGene_1_0.05 <- DE_1_0.05 [DE_1_0.05 $change=="UP",]
+downGene_1_0.05 <- DE_1_0.05 [DE_1_0.05 $change=="DOWN",]
+job <- "deg2/"
+write.csv(upGene_1_0.05,paste0(job,"upGene_1_0.05.csv"))
+write.csv(downGene_1_0.05,paste0(job,"downGene_1_0.05.csv"))
+```
+```{r}
+###结果可视化
+library(dplyr)
+DEG <- cbind(symbol = rownames(DEG), DEG)
+DEG <- rename(DEG, regulate = change) #修改列名 将"change"列名修改为"regulate"
+library(limma)
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)  # 加载ggrepel包
+source("ggVolcano.R")
+p <- ggvolcano(data = DEG,x="log2FoldChange",y="pvalue",output = F,label = "symbol",
+               fills = c("#00AFBB","#999999","#fc4e07"),
+               colors = c("#00AFBB","#999999","#FC4e07"),
+               x_lab = "log2FC",
+               y_lab = "-log10P.Value",
+               legend_position = "UR")
+```
+
+```{r}
+p
+```
+
+```{r}
+###热图的绘制
+library(pheatmap)
+###差异基因名称提取
+DEG_genes <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
+DEG_sorted <- DEG_genes[order(DEG_genes$log2FoldChange,decreasing = T), ]
+tem1 <- head(rownames(DEG_sorted),1000)
+tem2 <- tail(rownames(DEG_sorted),1000)
+# # 我们需要降序
+# DEG_gene_expr <- dat[c(tem1,tem2),]
+# DEG_gene_expr <- t(scale(t(DEG_gene_expr)))
+# # png(paste0(job,'3mVS9M_DEG_pheatmap.png'),width =1024,height =1024)
+# pheatmap(DEG_gene_expr,color=colorRampPalette(c("blue","white","red"))(100),
+#          scale="row",
+#          border_color=NA,
+#          fontsize=10,
+#          show_rownames=T)
+# cg = rownames(DEG)[DEG$regulate !="stable"]
+# h = draw_heatmap(dat[cg,],Group,n_cutoff = 2)
+# h
+cg <- c(tem1,tem2)
+anno=data.frame(row.names = colnames(dat),group=c(rep('CT',4),rep('PC',4)))
+pheatmap::pheatmap(dat[cg,],scale = 'row',cluster_cols = T,border_color = NA,
+                   breaks = seq(-2,2,length.out = 100),show_colnames = T,show_rownames = F,annotation_col = anno)
+```
+
+
+先把我们要的mitodeg挑出来，我们再去做gsea
+```{r}
+# mitocarta
+library(readxl)
+Human_MitoCarta3_0 <- read_excel("Human.MitoCarta3.0.xls", sheet = "A Human MitoCarta3.0")
+DE_1_0.05 <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
+intersect_gene <- intersect(Human_MitoCarta3_0$Symbol,rownames(DE_1_0.05))
+length(rownames(DE_1_0.05))
+length(intersect_gene)
+```
+```{r}
+mitodeg2 <- intersect_gene
+save(mitodeg2,file = "mito/mitodeg2.Rdata")
+write.table(mitodeg2,file ='mito/mitodeg2.txt',row.names = F,col.names = F,quote=F)
+```
+
+```{r}
+DE_up <- DEG[DEG$pvalue<0.05&DEG$log2FoldChange>1,]
+intersect_gene <- intersect(Human_MitoCarta3_0$Symbol,rownames(DE_up))
+length(rownames(DE_up))
+length(intersect_gene)
+mitodeg2_up <- intersect_gene
+save(mitodeg3_up,file = "mito/mitodeg2_up.Rdata")
+write.table(mitodeg2_up,file ='mito/mitodeg2_up.txt',row.names = F,col.names = F,quote=F)
+```
+```{r}
+DE_down <- DEG[DEG$pvalue<0.05&DEG$log2FoldChange< -1,]
+intersect_gene <- intersect(Human_MitoCarta3_0$Symbol,rownames(DE_down))
+length(rownames(DE_down))
+length(intersect_gene)
+mitodeg2_down <- intersect_gene
+save(mitodeg2_down,file = "mito/mitodeg2_down.Rdata")
+write.table(mitodeg2_down,file ='mito/mitodeg2_down.txt',row.names = F,col.names = F,quote=F)
+```
+
+
+
+# 先做gsea
+基因集富集分析(Gene Set Enrichment Analysis, GSEA)，用来确定一组先验定义的基因集是否在两种生物状态之间显示出统计学上显著的、一致的差异
+https://mp.weixin.qq.com/s/y2eUnD95pmmKEgVzqn6cFA
+
+```{r}
+# ID转化、GO注释
+# BiocManager::install("org.Hs.eg.db")
+library(org.Hs.eg.db) # human的OrgDB
+# library(org.Mm.eg.db) # 如果是mouse
+# 富集分析
+library(clusterProfiler)
+# 可视化
+library(enrichplot)
+library(ggplot2)
+```
+读取DESeq2的差异基因分析结果，是总表哈：
+```{r}
+head(DEG)
+```
+```{r}
+#上调基因
+DEG.gene_symbol_up = as.character(rownames(upGene_1_0.05))#获得基因 symbol ID
+DEG.entrez_id_up = mapIds(x = org.Hs.eg.db,
+                          keys = DEG.gene_symbol_up, #将输入的gene_name列进行数据转换
+                          keytype = "SYMBOL", #输入数据的类型
+                          column = "ENTREZID") #输出数据的类型
+```
+
+
+```{r}
+data_sort <- DEG %>%
+    arrange(desc(log2FoldChange))
+```
+
+```{r}
+gene_list <- data_sort$log2FoldChange
+names(gene_list) <- data_sort$symbol
+head(gene_list)
+```
+```{r}
+library(clusterProfiler)
+set.seed(1234)
+egmt <- GSEA(geneList, TERM2GENE = hallmark, 
+             minGSSize = 10,maxGSSize = 10000,
+             pvalueCutoff = 1,pAdjustMethod = 'BH')
+gesa_res <- egmt@result
+gesa_res <- gesa_res[gesa_res$pvalue < 0.05,]
+gesa_res <- gesa_res[order(gesa_res$NES,decreasing = T),]
+head(gesa_res)
+colnames(gesa_res)
+#"ID" "Description" "setSize" "enrichmentScore" "NES" "pvalue" "p.adjust" "qvalues" "rank" "leading_edge" 
+#"core_enrichment"
+sjPlot::tab_df(title = '',gesa_res[,2:8])#使用三线表查看结果
+```
+
+

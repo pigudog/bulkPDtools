@@ -1,0 +1,48 @@
+Package: PDtools
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    ggplot2,
+    ggrepel,
+    latex2exp,
+    magrittr,
+    BiocManager,
+    clusterProfiler,
+    dplyr,
+    limma,
+    stringr,
+    tibble,
+    pheatmap,
+    ggplot2,
+    survival,
+    survminer,
+    patchwork,
+    aplot,
+    DOSE,
+    ggpp,
+    ggsci,
+    grDevices,
+    purrr,
+    RColorBrewer,
+    readr,
+    reshape2,
+    stringr,
+    tibble,
+    utils
+Depends: 
+    tidyverse,
+    R (>= 2.10)
+Suggests: testthat, AnnoProbe, GEOquery, Biobase, VennDiagram,
+        FactoMineR, factoextra, knitr, rmarkdown, cowplot, ggpubr,
+        ggplotify, tidyr, labeling, Rtsne, scatterplot3d,
+        ComplexHeatmap, circlize,org.Hs.eg.db,org.Rn.eg.db,org.Mm.eg.db
+LazyData: true
