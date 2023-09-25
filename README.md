@@ -1,6 +1,6 @@
 # bulkPDtools
  a package for visualization of bulk RNA transcriptome analysis
- - est code in `./test`
+ - test code in `./test`
 
 # download
 ```r
@@ -38,7 +38,7 @@ pca.plot = draw_pca(dat,Group)+
   scale_color_manual(values = mycolors[1:3])
 pca.plot
 ```
-![](test/Figure1/scatterplot.pdf)
+![](README/scatterplot.pdf)
 
 ```r
 # remove batch effect
@@ -50,7 +50,7 @@ pca.plot = draw_pca(dat,Group)+
   scale_color_manual(values = mycolors[1:3])
 pca.plot
 ```
-![](test/Figure1/ellipse.pdf)
+![](README/ellipse.pdf)
 
 
 ## volcano plot
@@ -80,7 +80,7 @@ p <- ggvolcano(data = DEG,x="log2FoldChange",y="pvalue",output = F,label = "symb
 p
 
 ```
-![](test/Figure1/volcano.pdf)
+![](README/volcano.pdf)
 ## heatmap
 ```r
 ########################################################################
@@ -109,16 +109,16 @@ pheatmap(DEG_gene_expr,
          cluster_cols = F,
          filename = './Figure1/heatmap.pdf')
 ```
-![](test/Figure1/heatmap.pdf)
+![](README/heatmap.pdf)
 
 
 # 2. GO,KEGG AND GSEA
-![](test/Figure2/GSEA_0030595.pdf)
+![](README/GSEA_0030595.pdf)
 # 3. ML
-![](test/Figure4/train_combined.pdf)
+![](README/train_combined.pdf)
 # 4. immune
-![](test/Figure5/corHeatmap.pdf)
+![](README/corHeatmap.pdf)
 
 
 # 5. sankey
-![](test/Figure7/ggalluvial_pcos.pdf)
+![](README/ggalluvial_pcos.pdf)
