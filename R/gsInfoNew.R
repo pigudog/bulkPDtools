@@ -1,6 +1,5 @@
 #' @title gsInfoNew
 #' @name gsInfoNew
-#' @author Guangchuang Yu, modified by JunZhang
 #' @param geneList geneList for GSEA software outputs which is saved in
 #'  "gseaOutputs/ranked_gene_list_treat_versus_control*.tsv".
 #' @param geneSetID gene set ID.

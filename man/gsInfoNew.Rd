@@ -23,6 +23,3 @@ a data.frame
 \description{
 gsInfoNew
 }
-\author{
-Guangchuang Yu, modified by JunZhang
-}
