@@ -38,7 +38,7 @@ pca.plot = draw_pca(dat,Group)+
   scale_color_manual(values = mycolors[1:3])
 pca.plot
 ```
-![](README/scatterplot.pdf)
+![](README/Pasted%20image%2020231022200857.png)
 
 ```r
 # remove batch effect
@@ -50,7 +50,7 @@ pca.plot = draw_pca(dat,Group)+
   scale_color_manual(values = mycolors[1:3])
 pca.plot
 ```
-![](README/ellipse.pdf)
+![](README/Pasted%20image%2020231022200913.png)
 
 
 ## volcano plot
@@ -80,7 +80,7 @@ p <- ggvolcano(data = DEG,x="log2FoldChange",y="pvalue",output = F,label = "symb
 p
 
 ```
-![](README/volcano.pdf)
+![](README/Pasted%20image%2020231022200928.png)
 ## heatmap
 ```r
 ########################################################################
@@ -109,16 +109,16 @@ pheatmap(DEG_gene_expr,
          cluster_cols = F,
          filename = './Figure1/heatmap.pdf')
 ```
-![](README/heatmap.pdf)
+![](README/Pasted%20image%2020231022200941.png)
 
 
 # 2. GO,KEGG AND GSEA
 ![](README/GSEA_0030595.pdf)
 # 3. ML
-![](README/train_combined.pdf)
+![](README/Pasted%20image%2020231022200952.png)
 # 4. immune
-![](README/corHeatmap.pdf)
+![](README/Pasted%20image%2020231022201003.png)
 
 
 # 5. sankey
-![](README/ggalluvial_pcos.pdf)
+![](README/Pasted%20image%2020231022201013.png)

@@ -111,7 +111,7 @@ pca.plot
 dev.off()
 
 ######################################################################
-# we use the ordered matrix for heatmap
+# we use the ordered matrix for volcano
 data("key_train_exprSet")
 data("DESeq2_raw")
 DEG$g=ifelse(DEG$pvalue>0.05,'stable',
@@ -142,12 +142,12 @@ dev.off()
 # we use the DEG to plot heatmap
 library(pheatmap)
 dat <- rt
-###差异基因名称提取
+### extract the name of deg
 DEG_genes <- DEG[DEG$pvalue<0.05&abs(DEG$log2FoldChange)>1,]
 DEG_sorted <- DEG_genes[order(DEG_genes$log2FoldChange,decreasing = T), ]
 tem1 <- head(rownames(DEG_sorted),50)
 tem2 <- tail(rownames(DEG_sorted),50)
-# 我们需要降序
+# we need to order our genes
 DEG_gene_expr <- dat[c(tem1,tem2),]
 DEG_gene_expr <- t(scale(t(DEG_gene_expr)))
 DEG_gene_expr <- na.omit(DEG_gene_expr)
