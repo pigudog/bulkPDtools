@@ -7,7 +7,7 @@ library(scPDtools)
 # rt2=read.table("data/pathway.csv",sep = ",",header = T)
 # save(rt1,rt2,file="data/sankey.rda")
 data("sankey")
-# 合并两个数据框
+# merge data
 merged_data <- merge(rt1, rt2, all = TRUE)
 merged_data
 newData=merged_data[,c(2,1,3)]
